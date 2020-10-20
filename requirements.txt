@@ -1,4 +1,4 @@
 discord.py==1.5.0
 asyncio==3.4.3
-arc-api
+git+https://github.com/littlebutt/Arcapi.git
 websockets==8.1
