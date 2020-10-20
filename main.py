@@ -36,15 +36,16 @@ def showName(name_text):
 
 # api_에서 유저 정보를 선택해서 가져오는 함수
 def get_info(API):
-    var = {'name': showName(API.get('song_id')), 'dif': API.get('difficulty'), 'score': API.get('score'), 'const': API.get('constant'),
-           'potential': API.get('rating'), 'note': API.get('perfect_count') + API.get('near_count') + API.get('miss_count'),
+    var = {'name': showName(API.get('song_id')), 'dif': API.get('difficulty'), 'score': API.get('score'),
+           'const': API.get('constant'),
+           'potential': API.get('rating'),
+           'note': API.get('perfect_count') + API.get('near_count') + API.get('miss_count'),
            'health': API.get('health')}  # health는 반갈죽 여부를 위함
     return var
 
 
 # 정렬 시스템 함수
 def arrange(info_type, base_list):
-
     type_list = [{} for q in range(min(60, len(base_list)))]
 
     type_list[0] = base_list[0]
@@ -127,14 +128,16 @@ async def get_api_coroutine():
             recent_api_ = get_info(sub_api_[1].get('recent_score')[0])
 
             if len(RL_data[user_data[i]]) == 0 or recent_api_ != RL_data[user_data[i]][0]:  # 결과가 update된 경우
-                if (len(recent_po_list) < 10 or not (recent_api_.get('potential') <= recent_po_list[9].get('potential') and recent_api_.get('score') >= 9800000)) or recent_api_.get('health') != -1:
+                if (len(recent_po_list) < 10 or not (
+                        recent_api_.get('potential') <= recent_po_list[9].get('potential') and recent_api_.get(
+                        'score') >= 9800000)) or recent_api_.get('health') != -1:
                     # Recent Top 10 기록이 아니고, EX 이상인 경우와 반갈죽 당한 경우는 제외
 
                     for j in range(len(RL_data[user_data[i]]) - 1, -1, -1):  # recent_list를 뒤로 밈.
                         if j == len(RL_data[user_data[i]]) - 1:
                             RL_data[user_data[i]].append(RL_data[user_data[i]][j])
                         else:
-                            RL_data[user_data[i]][j+1] = RL_data[user_data[i]][j]
+                            RL_data[user_data[i]][j + 1] = RL_data[user_data[i]][j]
 
                     if len(RL_data[user_data[i]]) == 0:
                         RL_data[user_data[i]].append(recent_api_)
@@ -172,7 +175,7 @@ async def login(ctx, code):
     user_code = code
     await asyncio.sleep(10)
     await ctx.channel.purge(limit=1)
-    await ctx.send("login이 완료되었습니다.\n[주의] 없는 유저 코드를 입력한 경우에는 자동으로 기본 계정으로 연결됩니다.")
+    await ctx.send("login이 완료되었습니다.\n[주의] 없는 유저 코드를 입력한 경우에는 자동으로 000000001 계정으로 연결됩니다.")
 
 
 @client.command(name="best", pass_context=True)
@@ -188,12 +191,15 @@ async def showBest(ctx):
             BF_potential += potential_list[i].get('potential')
     BF_potential /= 30
 
-    embed = discord.Embed(title="퍼텐셜 기록 상위 30개 (Best Frame Potential : " + "{0:.3f}".format(BF_potential) + ")"
+    embed = discord.Embed(title="퍼텐셜 기록 상위 30개 [User : " + api_[1].get('name') + "]\n" + 
+                                "(Best Frame Potential : " + "{0:.3f}".format(BF_potential) + ")"
                           , description="--------------------------------------------------", color=0xffff00)
     for i in range(len(potential_list)):
         if i < 45:
-            embed.add_field(name=str(i + 1) + ". " + potential_list[i].get('name') + " [" + showDif(potential_list[i].get('dif')) + "/" + str(potential_list[i].get('const')) + "]"
-                            , value=str(potential_list[i].get('score')) + " (" + "{0:.3f}".format(potential_list[i].get('potential')) + ")", inline=False)
+            embed.add_field(name=str(i + 1) + ". " + potential_list[i].get('name') + " [" + showDif(
+                potential_list[i].get('dif')) + "/" + str(potential_list[i].get('const')) + "]"
+                            , value=str(potential_list[i].get('score')) + " (" + "{0:.3f}".format(
+                    potential_list[i].get('potential')) + ")", inline=False)
 
             if i % 15 == 14 or i == len(potential_list) - 1:
                 await ctx.send(embed=embed)
@@ -212,7 +218,7 @@ async def showPlaytime(ctx):
     for i in range(len(recent_po_list)):
         is_repeated = False
         for j in range(i):
-            if recent_po_list[i].get('name') == recent_po_list[j].get('name'):
+            if recent_po_list[i].get('name') == recent_po_list[j].get('name') and recent_po_list[i].get('dif') == recent_po_list[j].get('dif'):
                 is_repeated = True
                 break
 
@@ -225,11 +231,17 @@ async def showPlaytime(ctx):
 
     RC_potential /= 10
 
-    embed = discord.Embed(title="최근 기록 상위 10개 (Recent Frame Potential : " + "{0:.3f}".format(RC_potential) + ")"
-                          , description="--------------------------------------------------", color=0xffff00)
+    embed = discord.Embed(title="최근 기록 상위 10개 [User : " + api_[1].get('name') + "]\n" + 
+                                "(Recent Frame Potential : " + "{0:.3f}".format(RC_potential) + ")"
+                          , description="[주의] Bot에서의 Recent Frame Potential은 실제값과 다를 수 있습니다.\n" +
+                                        "[주의] Bot에 login한 후 20~30번 정도 플레이해야 정확한 결과를 얻을 수 있습니다.\n" +
+                                        "--------------------------------------------------", color=0xffff00)
     for i in range(len(print_list)):
-        embed.add_field(name=str(i + 1) + ". " + print_list[i].get('name') + " [" + showDif(print_list[i].get('dif')) + "/" + str(print_list[i].get('const')) + "]"
-                        , value=str(print_list[i].get('score')) + " (" + "{0:.3f}".format(print_list[i].get('potential')) + ")", inline=False)
+        embed.add_field(
+            name=str(i + 1) + ". " + print_list[i].get('name') + " [" + showDif(print_list[i].get('dif')) + "/" + str(
+                print_list[i].get('const')) + "]"
+            , value=str(print_list[i].get('score')) + " (" + "{0:.3f}".format(print_list[i].get('potential')) + ")",
+            inline=False)
 
         if i % 10 == 9 or i == len(print_list) - 1:
             await ctx.send(embed=embed)
