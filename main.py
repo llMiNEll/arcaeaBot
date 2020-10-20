@@ -4,7 +4,7 @@ from discord.ext import commands
 import asyncio
 import pickle
 import websockets
-# import os
+import os
 
 info_list = [{} for i in range(0)]
 recent_po_list = [{} for k in range(0)]
@@ -172,7 +172,7 @@ async def login(ctx, code):
     user_code = code
     await asyncio.sleep(10)
     await ctx.channel.purge(limit=1)
-    await ctx.send("login이 완료되었습니다.\n[주의] 없는 유저 코드를 입력한 경우에는 자동으로 000000001 계정으로 연결됩니다.")
+    await ctx.send("login이 완료되었습니다.\n[주의] 없는 유저 코드를 입력한 경우에는 자동으로 기본 계정으로 연결됩니다.")
 
 
 @client.command(name="best", pass_context=True)
@@ -237,7 +237,3 @@ async def showPlaytime(ctx):
 
 access_token = os.environ["BOT_TOKEN"]
 client.run(access_token)
-
-# recent 최고기록에서 곡 종류가 10개 미만인 경우에는 곡 10개만 남기기
-
-# 유저 이름이랑 같이 올리기
