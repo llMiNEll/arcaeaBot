@@ -7,6 +7,7 @@ import websockets
 import random
 import os
 
+
 info_list = [{} for i in range(0)]
 recent_po_list = [{} for k in range(0)]
 user_code = "552925754"
