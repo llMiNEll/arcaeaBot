@@ -7,7 +7,6 @@ import websockets
 import random
 import os
 
-
 info_list = [{} for i in range(0)]
 recent_po_list = [{} for k in range(0)]
 user_code = "552925754"
@@ -116,11 +115,10 @@ async def get_api_coroutine():
                 user_code = "552925754"
                 break
 
+            # 현재 불러온 임시 api_가 user_code의 것이라면
             if user_data[i] == user_code:
                 info_list = [{} for i in range(0)]
 
-            # 현재 불러온 임시 api_가 user_code의 것이라면
-            if user_data[i] == user_code:
                 api_ = sub_api_
                 for j in range(2, len(api_)):
                     for info in api_[j]:
@@ -177,7 +175,7 @@ async def login(ctx, code):
     user_code = code
     await asyncio.sleep(10)
     await ctx.channel.purge(limit=1)
-    await ctx.send("login이 완료되었습니다.\n[주의] 없는 유저 코드를 입력한 경우에는 자동으로 000000001 계정으로 연결됩니다.")
+    await ctx.send("login이 완료되었습니다.\n[주의] 없는 유저 코드를 입력한 경우에는 자동으로 기본 설정 계정으로 연결됩니다.")
 
 
 @client.command(name="best", pass_context=True)
@@ -253,9 +251,9 @@ async def showPlaytime(ctx):
 @client.command(name="recommend", pass_context=True)
 # No.004 곡 추천 시스템
 async def recommend(ctx):
-    global info_list
+    global info_list, api_
 
-    potential = api_[1].get('rating') / 100
+    p = api_[1].get('rating') / 100
 
     # 곡 선정
     while True:
@@ -263,13 +261,13 @@ async def recommend(ctx):
         random_api_ = info_list[r]
 
         # 일반적인 경우 / 아닌 경우(곡 보면 상수가 너무 낮은 경우)는 r 다시 뽑기
-        if random_api_.get('const') + 2.5 >= potential:
+        if random_api_.get('const') + 2.5 >= p:
             break
 
     # 목표 퍼텐셜 계산
     const = random_api_.get('const')
     note = random_api_.get('note')
-    goal_poten = const + 0.1
+    goal_poten = random_api_.get('potential') + 0.05
 
     # 목표 점수 계산
     # PM이 목표인 경우
@@ -279,20 +277,20 @@ async def recommend(ctx):
         goal_score = (goal_poten - const - 1) * 200000 + 9800000
     else:
         goal_score = (goal_poten - const) * 300000 + 9500000
-        
+
     # 목표 far 수 계산
     far = 0
     while True:
         # 목표 점수보다 far 환산 점수가 더 높은 경우
         if (note - far / 2) / note * 10000000 >= goal_score:
-            far += 1
+            far -= 1
         else:
             break
     far += 1  # 보정값
-    
+
     embed = discord.Embed(title="곡 추천 [User : " + api_[1].get('name') + "]", color=0xaaaaaa)
     embed.add_field(name=random_api_.get('name') + " [" + showDif(random_api_.get('dif')) + "/" + str(const) + "]"
-                    , value=str(goal_score) + " (" + "{0:.3f}".format(goal_poten) + ")\n" +
+                    , value=str(goal_score) + " (" + "{0:.3f}".format(min(goal_poten, const + 2)) + ")\n" +
                             "<허용 far 수> " + str(far), inline=False)
 
     await ctx.send(embed=embed)
