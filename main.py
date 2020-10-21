@@ -283,10 +283,10 @@ async def recommend(ctx):
     while True:
         # 목표 점수보다 far 환산 점수가 더 높은 경우
         if (note - far / 2) / note * 10000000 >= goal_score:
-            far -= 1
+            far += 1
         else:
             break
-    far += 1  # 보정값
+    far -= 1  # 보정값
 
     embed = discord.Embed(title="곡 추천 [User : " + api_[1].get('name') + "]", color=0xaaaaaa)
     embed.add_field(name=random_api_.get('name') + " [" + showDif(random_api_.get('dif')) + "/" + str(const) + "]"
