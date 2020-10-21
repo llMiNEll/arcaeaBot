@@ -295,5 +295,7 @@ async def recommend(ctx):
                     , value=str(goal_score) + " (" + "{0:.3f}".format(goal_poten) + ")\n" +
                             "<허용 far 수> " + str(far), inline=False)
 
+    await ctx.send(embed=embed)
+    
 access_token = os.environ["BOT_TOKEN"]
 client.run(access_token)
