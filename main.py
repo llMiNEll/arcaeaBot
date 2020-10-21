@@ -4,7 +4,9 @@ from discord.ext import commands
 import asyncio
 import pickle
 import websockets
-import os
+import random
+
+# import os
 
 info_list = [{} for i in range(0)]
 recent_po_list = [{} for k in range(0)]
@@ -101,7 +103,7 @@ async def get_api_coroutine():
 
             data = AsyncApi(user_data[i])
             try:
-                sub_api_ = await data.constants(start=8, end=12)
+                sub_api_ = await data.constants(start=7, end=12)
 
             # 없는 user code이거나 타이리츠, 히카리를 입력한 경우는 예외 처리
             except websockets.exceptions.ConnectionClosedError:
@@ -191,7 +193,7 @@ async def showBest(ctx):
             BF_potential += potential_list[i].get('potential')
     BF_potential /= 30
 
-    embed = discord.Embed(title="퍼텐셜 기록 상위 30개 [User : " + api_[1].get('name') + "]\n" + 
+    embed = discord.Embed(title="퍼텐셜 기록 상위 30개 [User : " + api_[1].get('name') + "]\n" +
                                 "(Best Frame Potential : " + "{0:.3f}".format(BF_potential) + ")"
                           , description="--------------------------------------------------", color=0xffff00)
     for i in range(len(potential_list)):
@@ -231,7 +233,7 @@ async def showPlaytime(ctx):
 
     RC_potential /= 10
 
-    embed = discord.Embed(title="최근 기록 상위 10개 [User : " + api_[1].get('name') + "]\n" + 
+    embed = discord.Embed(title="최근 기록 상위 10개 [User : " + api_[1].get('name') + "]\n" +
                                 "(Recent Frame Potential : " + "{0:.3f}".format(RC_potential) + ")"
                           , description="[주의] Bot에서의 Recent Frame Potential은 실제값과 다를 수 있습니다.\n" +
                                         "[주의] Bot에 login한 후 20~30번 정도 플레이해야 정확한 결과를 얻을 수 있습니다.\n" +
@@ -246,6 +248,52 @@ async def showPlaytime(ctx):
         if i % 10 == 9 or i == len(print_list) - 1:
             await ctx.send(embed=embed)
             embed = discord.Embed(description="--------------------------------------------------", color=0xffff00)
+
+
+@client.command(name="recommend", pass_context=True)
+# No.004 곡 추천 시스템
+async def recommend(ctx):
+    global info_list
+
+    potential = api_[1].get('rating') / 100
+
+    # 곡 선정
+    while True:
+        r = random.randint(0, len(info_list))
+        random_api_ = info_list[r]
+
+        # 일반적인 경우 / 아닌 경우(곡 보면 상수가 너무 낮은 경우)는 r 다시 뽑기
+        if random_api_.get('const') + 2.5 >= potential:
+            break
+
+    # 목표 퍼텐셜 계산
+    const = random_api_.get('const')
+    note = random_api_.get('note')
+    goal_poten = const + 0.1
+
+    # 목표 점수 계산
+    # PM이 목표인 경우
+    if goal_poten >= const + 2:
+        goal_score = 10000000
+    elif goal_poten >= const + 1:
+        goal_score = (goal_poten - const - 1) * 200000 + 9800000
+    else:
+        goal_score = (goal_poten - const) * 300000 + 9500000
+        
+    # 목표 far 수 계산
+    far = 0
+    while True:
+        # 목표 점수보다 far 환산 점수가 더 높은 경우
+        if (note - far / 2) / note * 10000000 >= goal_score:
+            far += 1
+        else:
+            break
+    far += 1  # 보정값
+    
+    embed = discord.Embed(title="곡 추천 [User : " + api_[1].get('name') + "]", color=0xaaaaaa)
+    embed.add_field(name=random_api_.get('name') + " [" + showDif(random_api_.get('dif')) + "/" + str(const) + "]"
+                    , value=str(goal_score) + " (" + "{0:.3f}".format(goal_poten) + ")\n" +
+                            "<허용 far 수> " + str(far), inline=False)
 
 access_token = os.environ["BOT_TOKEN"]
 client.run(access_token)
