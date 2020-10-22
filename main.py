@@ -30,6 +30,21 @@ def showDif(dif):
         return "BYD"
 
 
+def showCType(c_type, is_FPM):
+    if is_FPM:
+        return " [FPM]"
+    elif c_type == 1:
+        return " [NC]"
+    elif c_type == 2:
+        return " [FC]"
+    elif c_type == 3:
+        return " [PM]"
+    elif c_type == 4:
+        return " [EC]"
+    elif c_type == 5:
+        return " [HC]"
+
+
 # 이름(not song_id) 출력 함수
 def showName(name_text):
     return api_[0].get(name_text).get('en')
@@ -38,10 +53,10 @@ def showName(name_text):
 # api_에서 유저 정보를 선택해서 가져오는 함수
 def get_info(API):
     var = {'name': showName(API.get('song_id')), 'dif': API.get('difficulty'), 'score': API.get('score'),
-           'const': API.get('constant'),
-           'potential': API.get('rating'),
+           'const': API.get('constant'), 'potential': API.get('rating'),
            'note': API.get('perfect_count') + API.get('near_count') + API.get('miss_count'),
-           'health': API.get('health')}  # health는 반갈죽 여부를 위함
+           'health': API.get('health'), 'c_type': API.get('best_clear_type'),
+           'is_FPM': API.get('shiny_perfect_count') == API.get('note')}  # health는 반갈죽 여부를 위함
     return var
 
 
@@ -153,7 +168,7 @@ async def get_api_coroutine():
         with open("user.bin", "wb") as f:  # user_data 저장
             pickle.dump(user_data, f)
 
-        await asyncio.sleep(10)
+        await asyncio.sleep(153)
         print(recent_po_list)
 
 
@@ -198,8 +213,8 @@ async def showBest(ctx):
         if i < 45:
             embed.add_field(name=str(i + 1) + ". " + potential_list[i].get('name') + " [" + showDif(
                 potential_list[i].get('dif')) + "/" + str(potential_list[i].get('const')) + "]"
-                            , value=str(potential_list[i].get('score')) + " (" + "{0:.3f}".format(
-                    potential_list[i].get('potential')) + ")", inline=False)
+                            , value=str(potential_list[i].get('score')) + showCType(potential_list[i].get('c_type'), potential_list[i].get('is_FPM'))
+                                    + " (" + "{0:.3f}".format(potential_list[i].get('potential')) + ")", inline=False)
 
             if i % 15 == 14 or i == len(potential_list) - 1:
                 await ctx.send(embed=embed)
@@ -240,7 +255,8 @@ async def showPlaytime(ctx):
         embed.add_field(
             name=str(i + 1) + ". " + print_list[i].get('name') + " [" + showDif(print_list[i].get('dif')) + "/" + str(
                 print_list[i].get('const')) + "]"
-            , value=str(print_list[i].get('score')) + " (" + "{0:.3f}".format(print_list[i].get('potential')) + ")",
+            , value=str(print_list[i].get('score')) + showCType(print_list[i].get('c_type'), print_list[i].get('is_FPM'))
+                    + " (" + "{0:.3f}".format(print_list[i].get('potential')) + ")",
             inline=False)
 
         if i % 10 == 9 or i == len(print_list) - 1:
@@ -290,7 +306,7 @@ async def recommend(ctx):
 
     embed = discord.Embed(title="곡 추천 [User : " + api_[1].get('name') + "]", color=0xaaaaaa)
     embed.add_field(name=random_api_.get('name') + " [" + showDif(random_api_.get('dif')) + "/" + str(const) + "]"
-                    , value=str(goal_score) + " (" + "{0:.3f}".format(min(goal_poten, const + 2)) + ")\n" +
+                    , value=str(int(goal_score)) + " (" + "{0:.3f}".format(min(goal_poten, const + 2)) + ")\n" +
                             "<허용 far 수> " + str(far), inline=False)
 
     await ctx.send(embed=embed)
