@@ -62,6 +62,15 @@ def get_info(API):
     return var
 
 
+def get_recent(API):
+    var = {'name': showName(API.get('song_id')), 'dif': API.get('difficulty'), 'score': API.get('score'),
+           'const': API.get('constant'), 'potential': API.get('rating'),
+           'note': API.get('perfect_count') + API.get('near_count') + API.get('miss_count'),
+           'health': API.get('health'), 'c_type': API.get('clear_type'),
+           'is_FPM': API.get('shiny_perfect_count') == API.get('note')}  # health는 반갈죽 여부를 위함
+    return var
+
+
 # 정렬 시스템 함수
 def arrange(info_type, base_list):
     type_list = [{} for q in range(min(60, len(base_list)))]
@@ -139,7 +148,7 @@ async def get_api_coroutine():
                 api_ = sub_api_
                 for j in range(2, len(api_)):
                     for info in api_[j]:
-                        info_list.append(get_info(info))
+                        info_list.append(get_recent(info))
 
             # 최근 곡 하나를 불러옴
             recent_api_ = get_info(sub_api_[1].get('recent_score')[0])
