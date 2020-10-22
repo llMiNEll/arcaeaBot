@@ -31,7 +31,9 @@ def showDif(dif):
 
 
 def showCType(c_type, is_FPM):
-    if is_FPM:
+    if c_type is None or is_FPM is None:
+        return " "
+    elif is_FPM:
         return " [FPM]"
     elif c_type == 1:
         return " [NC]"
