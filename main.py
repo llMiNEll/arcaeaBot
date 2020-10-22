@@ -148,10 +148,10 @@ async def get_api_coroutine():
                 api_ = sub_api_
                 for j in range(2, len(api_)):
                     for info in api_[j]:
-                        info_list.append(get_recent(info))
+                        info_list.append(get_info(info))
 
             # 최근 곡 하나를 불러옴
-            recent_api_ = get_info(sub_api_[1].get('recent_score')[0])
+            recent_api_ = get_recent(sub_api_[1].get('recent_score')[0])
 
             if len(RL_data[user_data[i]]) == 0 or recent_api_ != RL_data[user_data[i]][0]:  # 결과가 update된 경우
                 if (len(recent_po_list) < 10 or not (
